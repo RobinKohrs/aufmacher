@@ -405,6 +405,22 @@ function generateHTML(deviceType, timestamps, screenshotsDir) {
                     return;
                 }
                 
+                const imagePath = 'screenshots_web/' + deviceType + '/' + timestamp + '/' + site + '_' + timestamp + '.webp';
+                const cacheKey = imagePath;
+                
+                // Check if image is already cached
+                if (imageCache[cacheKey]) {
+                    console.log('✓ Using cached: ' + imagePath);
+                    displayCachedImage(cell, imageCache[cacheKey], site);
+                    loadedCount++;
+                    if (loadedCount === totalImages) {
+                        isLoading = false;
+                        // Preload nearby images after current load completes
+                        preloadNearbyImages(index);
+                    }
+                    return;
+                }
+                
                 const existingImg = cell.querySelector('img');
                 const loadingDiv = cell.querySelector('.loading');
                 
@@ -418,20 +434,24 @@ function generateHTML(deviceType, timestamps, screenshotsDir) {
                 
                 // Create new image
                 const img = new Image();
-                const imagePath = 'screenshots_web/' + deviceType + '/' + timestamp + '/' + site + '_' + timestamp + '.webp';
                 
                 img.onload = function() {
                     console.log('✓ Loaded: ' + imagePath);
-                    // Remove existing image
-                    if (existingImg) existingImg.remove();
                     
-                    // Add new image
-                    img.style.display = 'block';
-                    cell.insertBefore(img, cell.querySelector('.label'));
-                    if (loadingDiv) loadingDiv.style.display = 'none';
+                    // Cache the loaded image
+                    imageCache[cacheKey] = {
+                        img: img.cloneNode(),
+                        timestamp: Date.now()
+                    };
+                    
+                    displayCachedImage(cell, imageCache[cacheKey], site);
                     
                     loadedCount++;
-                    if (loadedCount === totalImages) isLoading = false;
+                    if (loadedCount === totalImages) {
+                        isLoading = false;
+                        // Preload nearby images after current load completes
+                        preloadNearbyImages(index);
+                    }
                 };
                 
                 img.onerror = function() {
@@ -443,12 +463,123 @@ function generateHTML(deviceType, timestamps, screenshotsDir) {
                     }
                     
                     loadedCount++;
-                    if (loadedCount === totalImages) isLoading = false;
+                    if (loadedCount === totalImages) {
+                        isLoading = false;
+                        // Still preload nearby images even if some failed
+                        preloadNearbyImages(index);
+                    }
                 };
                 
                 // Set image source (relative path from HTML file to screenshots)
                 img.src = imagePath;
             });
+        }
+        
+        // Helper function to display cached image
+        function displayCachedImage(cell, cachedImg, site) {
+            const existingImg = cell.querySelector('img');
+            const loadingDiv = cell.querySelector('.loading');
+            
+            // Remove existing image
+            if (existingImg) existingImg.remove();
+            
+            // Clone and add cached image
+            const img = cachedImg.img.cloneNode();
+            img.style.display = 'block';
+            cell.insertBefore(img, cell.querySelector('.label'));
+            if (loadingDiv) loadingDiv.style.display = 'none';
+        }
+        
+        // Advanced preloading system
+        const imageCache = {}; // Cache for loaded images
+        const PRELOAD_RANGE = 3; // Preload 3 timestamps before and after current
+        const MAX_CACHE_SIZE = 50; // Limit cache size to prevent memory issues
+        
+        function preloadNearbyImages(currentIndex) {
+            // Preload images for nearby timestamps
+            const preloadPromises = [];
+            
+            for (let offset = -PRELOAD_RANGE; offset <= PRELOAD_RANGE; offset++) {
+                const targetIndex = currentIndex + offset;
+                
+                // Skip current index (already loaded) and invalid indices
+                if (targetIndex === currentIndex || targetIndex < 0 || targetIndex >= timestamps.length) {
+                    continue;
+                }
+                
+                const targetTimestamp = timestamps[targetIndex];
+                
+                // Preload all sites for this timestamp
+                for (const site of websiteOrder) {
+                    const imagePath = 'screenshots_web/' + deviceType + '/' + targetTimestamp + '/' + site + '_' + targetTimestamp + '.webp';
+                    
+                    // Skip if already cached
+                    if (imageCache[imagePath]) {
+                        continue;
+                    }
+                    
+                    // Create preload promise
+                    const preloadPromise = new Promise((resolve) => {
+                        const img = new Image();
+                        
+                        img.onload = function() {
+                            // Cache the preloaded image
+                            imageCache[imagePath] = {
+                                img: img.cloneNode(),
+                                timestamp: Date.now()
+                            };
+                            
+                            // Clean cache if it gets too large
+                            cleanCache();
+                            
+                            console.log('📦 Preloaded: ' + imagePath);
+                            resolve();
+                        };
+                        
+                        img.onerror = function() {
+                            // Don't log errors for preload attempts
+                            resolve();
+                        };
+                        
+                        img.src = imagePath;
+                    });
+                    
+                    preloadPromises.push(preloadPromise);
+                }
+            }
+            
+            // Log preload completion
+            if (preloadPromises.length > 0) {
+                console.log('🚀 Starting preload of ' + preloadPromises.length + ' images...');
+                Promise.all(preloadPromises).then(() => {
+                    console.log('✅ Preload batch completed');
+                });
+            }
+        }
+        
+        function cleanCache() {
+            const cacheKeys = Object.keys(imageCache);
+            
+            if (cacheKeys.length > MAX_CACHE_SIZE) {
+                // Sort by timestamp (oldest first) and remove oldest entries
+                const sortedKeys = cacheKeys.sort((a, b) => 
+                    imageCache[a].timestamp - imageCache[b].timestamp
+                );
+                
+                const keysToRemove = sortedKeys.slice(0, cacheKeys.length - MAX_CACHE_SIZE);
+                
+                keysToRemove.forEach(key => {
+                    delete imageCache[key];
+                });
+                
+                console.log('🧹 Cleaned ' + keysToRemove.length + ' old images from cache');
+            }
+        }
+        
+        // Preload initial images when page loads
+        function initialPreload() {
+            console.log('🚀 Starting initial preload...');
+            preloadNearbyImages(0);
         }
         
         // Event listeners
@@ -485,6 +616,7 @@ function generateHTML(deviceType, timestamps, screenshotsDir) {
         
         // Initialize with first timestamp
         updateTimestamp(0);
+        initialPreload(); // Start preloading immediately
     </script>
 </body>
 </html>`;
