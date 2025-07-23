@@ -5,8 +5,8 @@ const path = require("path");
 
 // Configuration
 const GRID_SIZE = 3; // 3x3 grid
-const CELL_WIDTH = 192; // Width of each cell in pixels (30% of original 640)
-const CELL_HEIGHT = 144; // Height of each cell in pixels (30% of original 480)
+const CELL_WIDTH = 500; // Width of each cell in pixels (much larger for 90% desktop width)
+const CELL_HEIGHT = 375; // Height of each cell in pixels (maintain 4:3 aspect ratio)
 
 // Order of websites in the 3x3 grid
 const WEBSITE_ORDER = [
@@ -140,28 +140,15 @@ function generateHTML(deviceType, timestamps, screenshotsDir) {
         }
         
         .container {
-            max-width: ${GRID_SIZE * CELL_WIDTH + 40}px;
+            width: 70vw; /* Use 70% of viewport width */
+            max-width: ${
+              GRID_SIZE * CELL_WIDTH + 40
+            }px; /* Cap at grid size + padding */
             margin: 0 auto;
             background: white;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .header h1 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-        
-        .header p {
-            margin: 0;
-            color: #666;
-            font-size: 14px;
         }
         
         .controls {
@@ -215,13 +202,18 @@ function generateHTML(deviceType, timestamps, screenshotsDir) {
         
         .timestamp-display {
             text-align: center;
-            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-            font-size: 16px;
-            color: #333;
-            background: #e9ecef;
-            padding: 8px 12px;
-            border-radius: 4px;
-            display: inline-block;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 32px;
+            font-weight: 600;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: block;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+            letter-spacing: 0.5px;
         }
         
         .grid-container {
@@ -233,11 +225,14 @@ function generateHTML(deviceType, timestamps, screenshotsDir) {
         
         .news-grid {
             display: grid;
-            grid-template-columns: repeat(${GRID_SIZE}, ${CELL_WIDTH}px);
-            grid-template-rows: repeat(${GRID_SIZE}, ${CELL_HEIGHT}px);
-            gap: 0;
-            width: ${GRID_SIZE * CELL_WIDTH}px; /* Fixed total width */
-            height: ${GRID_SIZE * CELL_HEIGHT}px; /* Fixed total height */
+            grid-template-columns: repeat(${GRID_SIZE}, 1fr); /* Use flexible fractions */
+            grid-template-rows: repeat(${GRID_SIZE}, 1fr);
+            gap: 2px; /* Small gap for better visibility */
+            width: 100%; /* Fill container width */
+            aspect-ratio: 4/3; /* Maintain 4:3 aspect ratio for the entire grid */
+            max-width: ${GRID_SIZE * CELL_WIDTH}px; /* Cap at design size */
+            max-height: ${GRID_SIZE * CELL_HEIGHT}px;
+            margin: 0 auto; /* Center the grid */
         }
         
         .news-cell {
@@ -247,10 +242,9 @@ function generateHTML(deviceType, timestamps, screenshotsDir) {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: ${CELL_WIDTH}px; /* Fixed width */
-            height: ${CELL_HEIGHT}px; /* Fixed height */
             overflow: hidden; /* Prevent content from breaking layout */
             box-sizing: border-box; /* Include border in dimensions */
+            aspect-ratio: 4/3; /* Maintain 4:3 aspect ratio for each cell */
         }
         
         .news-cell img {
@@ -308,11 +302,6 @@ function generateHTML(deviceType, timestamps, screenshotsDir) {
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Desktopaufmacher</h1>
-            <p>Desktop – Montagmorgen bis Mittwochabend</p>
-        </div>
-        
         <div class="controls">
             <div class="slider-container">
                 <label for="timestamp-slider">Timeline:</label>
@@ -365,13 +354,41 @@ function generateHTML(deviceType, timestamps, screenshotsDir) {
         let currentTimestampIndex = 0;
         let isLoading = false; // Prevent overlapping updates
         
+        // German day names
+        const germanDays = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+        
+        function formatTimestampGerman(timestamp) {
+            try {
+                // Parse timestamp like "2025-07-21T001808"
+                const year = parseInt(timestamp.substring(0, 4));
+                const month = parseInt(timestamp.substring(5, 7));
+                const day = parseInt(timestamp.substring(8, 10));
+                const hour = parseInt(timestamp.substring(11, 13));
+                const minute = parseInt(timestamp.substring(13, 15));
+                
+                // Create date object
+                const date = new Date(year, month - 1, day, hour, minute);
+                
+                // Get German day name
+                const dayName = germanDays[date.getDay()];
+                
+                // Format time with leading zeros
+                const timeStr = hour.toString().padStart(2, '0') + ':' + minute.toString().padStart(2, '0');
+                
+                return dayName + ', ' + timeStr + ' Uhr';
+            } catch (error) {
+                // Fallback to original timestamp
+                return timestamp;
+            }
+        }
+        
         function updateTimestamp(index) {
             if (isLoading) return; // Prevent overlapping updates
             isLoading = true;
             
             currentTimestampIndex = index;
             const timestamp = timestamps[index];
-            timestampDisplay.textContent = timestamp;
+            timestampDisplay.textContent = formatTimestampGerman(timestamp);
             
             console.log('Loading timestamp ' + index + ': ' + timestamp);
             
