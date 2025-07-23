@@ -45,7 +45,7 @@
         }
         
         .slider-container {
-            margin-bottom: 15px;
+            margin-bottom: 8px;
         }
         
         .slider-container label {
@@ -109,6 +109,8 @@
             grid-template-columns: repeat(3, 192px);
             grid-template-rows: repeat(3, 144px);
             gap: 0;
+            width: 576px; /* Fixed total width */
+            height: 432px; /* Fixed total height */
         }
         
         .news-cell {
@@ -118,13 +120,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 192px; /* Fixed width */
+            height: 144px; /* Fixed height */
+            overflow: hidden; /* Prevent content from breaking layout */
+            box-sizing: border-box; /* Include border in dimensions */
         }
         
         .news-cell img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover; /* Changed from contain to cover for better fill */
             background: black;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         
         .news-cell .label {
@@ -138,6 +147,7 @@
             font-size: 12px;
             font-weight: 500;
             text-align: center;
+            z-index: 2; /* Ensure label stays on top */
         }
         
         .loading {
@@ -146,6 +156,13 @@
             justify-content: center;
             font-size: 14px;
             color: #666;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f8f9fa;
+            z-index: 1;
         }
         
         .stats {
@@ -165,8 +182,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📰 News Screenshots Timeline</h1>
-            <p>Desktop View • 199 Timestamps</p>
+            <h1>Desktopaufmacher</h1>
+            <p>Desktop – Montagmorgen bis Mittwochabend</p>
         </div>
         
         <div class="controls">
@@ -255,47 +272,85 @@
         const newsGrid = document.getElementById('news-grid');
         
         let currentTimestampIndex = 0;
+        let isLoading = false; // Prevent overlapping updates
         
         function updateTimestamp(index) {
+            if (isLoading) return; // Prevent overlapping updates
+            isLoading = true;
+            
             currentTimestampIndex = index;
             const timestamp = timestamps[index];
             timestampDisplay.textContent = timestamp;
             
+            console.log('Loading timestamp ' + index + ': ' + timestamp);
+            
+            let loadedCount = 0;
+            const totalImages = websiteOrder.length;
+            
             // Update all images
             websiteOrder.forEach((site, cellIndex) => {
-                const cell = document.querySelector(`[data-site="${site}"]`);
+                const cell = document.querySelector('[data-site="' + site + '"]');
+                if (!cell) {
+                    console.error('Cell not found for site: ' + site);
+                    loadedCount++;
+                    if (loadedCount === totalImages) isLoading = false;
+                    return;
+                }
+                
                 const existingImg = cell.querySelector('img');
                 const loadingDiv = cell.querySelector('.loading');
                 
                 // Show loading state
                 if (existingImg) existingImg.style.display = 'none';
-                loadingDiv.style.display = 'flex';
+                if (loadingDiv) {
+                    loadingDiv.style.display = 'flex';
+                    loadingDiv.textContent = 'Loading...';
+                    loadingDiv.style.color = '#666';
+                }
                 
                 // Create new image
                 const img = new Image();
+                const imagePath = 'screenshots_web/' + deviceType + '/' + timestamp + '/' + site + '_' + timestamp + '.webp';
+                
                 img.onload = function() {
+                    console.log('✓ Loaded: ' + imagePath);
                     // Remove existing image
                     if (existingImg) existingImg.remove();
                     
                     // Add new image
                     img.style.display = 'block';
                     cell.insertBefore(img, cell.querySelector('.label'));
-                    loadingDiv.style.display = 'none';
+                    if (loadingDiv) loadingDiv.style.display = 'none';
+                    
+                    loadedCount++;
+                    if (loadedCount === totalImages) isLoading = false;
                 };
                 
                 img.onerror = function() {
-                    loadingDiv.textContent = 'Error loading';
-                    loadingDiv.style.color = '#dc3545';
+                    console.warn('✗ Failed to load: ' + imagePath);
+                    if (loadingDiv) {
+                        loadingDiv.textContent = 'Missing';
+                        loadingDiv.style.color = '#dc3545';
+                        loadingDiv.style.display = 'flex';
+                    }
+                    
+                    loadedCount++;
+                    if (loadedCount === totalImages) isLoading = false;
                 };
                 
                 // Set image source (relative path from HTML file to screenshots)
-                img.src = `screenshots_web/${deviceType}/${timestamp}/${site}_${timestamp}.webp`;
+                img.src = imagePath;
             });
         }
         
         // Event listeners
         slider.addEventListener('input', function() {
-            updateTimestamp(parseInt(this.value));
+            const index = parseInt(this.value);
+            if (index >= 0 && index < timestamps.length) {
+                updateTimestamp(index);
+            } else {
+                console.error('Invalid slider index: ' + index + ', max: ' + (timestamps.length - 1));
+            }
         });
         
         // Keyboard navigation
@@ -304,12 +359,21 @@
                 currentTimestampIndex--;
                 slider.value = currentTimestampIndex;
                 updateTimestamp(currentTimestampIndex);
+                e.preventDefault(); // Prevent page scrolling
             } else if (e.key === 'ArrowRight' && currentTimestampIndex < timestamps.length - 1) {
                 currentTimestampIndex++;
                 slider.value = currentTimestampIndex;
                 updateTimestamp(currentTimestampIndex);
+                e.preventDefault(); // Prevent page scrolling
             }
         });
+        
+        // Initialize slider
+        slider.min = 0;
+        slider.max = timestamps.length - 1;
+        slider.value = 0;
+        
+        console.log('Initialized slider with ' + timestamps.length + ' timestamps (0-' + (timestamps.length - 1) + ')');
         
         // Initialize with first timestamp
         updateTimestamp(0);
