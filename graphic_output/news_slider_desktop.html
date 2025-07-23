@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Screenshots Slider - Desktop</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 616px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .header p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .timestamp-display {
+            text-align: center;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 16px;
+            color: #333;
+            background: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .grid-container {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 192px);
+            grid-template-rows: repeat(3, 144px);
+            gap: 0;
+        }
+        
+        .news-cell {
+            position: relative;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .news-cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: black;
+        }
+        
+        .news-cell .label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .stats {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .stats strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📰 News Screenshots Timeline</h1>
+            <p>Desktop View • 199 Timestamps</p>
+        </div>
+        
+        <div class="controls">
+            <div class="slider-container">
+                <label for="timestamp-slider">Timeline:</label>
+                <input 
+                    type="range" 
+                    id="timestamp-slider" 
+                    class="slider"
+                    min="0" 
+                    max="198" 
+                    value="0"
+                    step="1"
+                >
+            </div>
+            <div class="timestamp-display" id="timestamp-display">
+                2025-07-21T001808
+            </div>
+        </div>
+        
+        <div class="grid-container">
+            <div class="news-grid" id="news-grid">
+                
+                    <div class="news-cell" data-site="derstandard">
+                        <div class="loading">Loading...</div>
+                        <div class="label">Der Standard</div>
+                    </div>
+                
+                    <div class="news-cell" data-site="zeit">
+                        <div class="loading">Loading...</div>
+                        <div class="label">Die Zeit</div>
+                    </div>
+                
+                    <div class="news-cell" data-site="washingtonpost">
+                        <div class="loading">Loading...</div>
+                        <div class="label">Washington Post</div>
+                    </div>
+                
+                    <div class="news-cell" data-site="diepresse">
+                        <div class="loading">Loading...</div>
+                        <div class="label">Die Presse</div>
+                    </div>
+                
+                    <div class="news-cell" data-site="krone">
+                        <div class="loading">Loading...</div>
+                        <div class="label">Kronen Zeitung</div>
+                    </div>
+                
+                    <div class="news-cell" data-site="spiegel">
+                        <div class="loading">Loading...</div>
+                        <div class="label">Der Spiegel</div>
+                    </div>
+                
+                    <div class="news-cell" data-site="orf">
+                        <div class="loading">Loading...</div>
+                        <div class="label">ORF</div>
+                    </div>
+                
+                    <div class="news-cell" data-site="lemonde">
+                        <div class="loading">Loading...</div>
+                        <div class="label">Le Monde</div>
+                    </div>
+                
+                    <div class="news-cell" data-site="elpais">
+                        <div class="loading">Loading...</div>
+                        <div class="label">El País</div>
+                    </div>
+                
+            </div>
+        </div>
+        
+        <div class="stats">
+            <strong>Grid Layout:</strong> 3×3 • 
+            <strong>Cell Size:</strong> 192×144 • 
+            <strong>Total:</strong> 576×432
+        </div>
+    </div>
+
+    <script>
+        const timestamps = ["2025-07-21T001808","2025-07-21T004707","2025-07-21T010207","2025-07-21T011707","2025-07-21T013207","2025-07-21T015040","2025-07-21T020540","2025-07-21T022040","2025-07-21T023540","2025-07-21T025040","2025-07-21T031911","2025-07-21T033411","2025-07-21T034911","2025-07-21T040411","2025-07-21T043423","2025-07-21T044923","2025-07-21T050423","2025-07-21T051923","2025-07-21T053424","2025-07-21T054924","2025-07-21T060424","2025-07-21T061924","2025-07-21T063424","2025-07-21T065232","2025-07-21T082742","2025-07-21T084242","2025-07-21T085742","2025-07-21T091242","2025-07-21T092742","2025-07-21T094242","2025-07-21T095742","2025-07-21T101242","2025-07-21T102742","2025-07-21T104242","2025-07-21T105742","2025-07-21T111242","2025-07-21T112742","2025-07-21T114242","2025-07-21T115742","2025-07-21T121242","2025-07-21T122742","2025-07-21T124242","2025-07-21T125742","2025-07-21T131242","2025-07-21T132743","2025-07-21T134242","2025-07-21T135742","2025-07-21T141243","2025-07-21T142742","2025-07-21T144242","2025-07-21T145742","2025-07-21T151242","2025-07-21T152742","2025-07-21T154242","2025-07-21T155742","2025-07-21T161243","2025-07-21T162743","2025-07-21T164242","2025-07-21T165743","2025-07-21T171243","2025-07-21T172743","2025-07-21T174243","2025-07-21T175743","2025-07-21T181243","2025-07-21T182742","2025-07-21T191307","2025-07-21T192807","2025-07-21T194307","2025-07-21T195807","2025-07-21T202945","2025-07-21T204446","2025-07-21T211700","2025-07-21T213200","2025-07-21T214700","2025-07-21T220200","2025-07-21T223228","2025-07-21T224728","2025-07-21T231943","2025-07-21T233443","2025-07-21T234943","2025-07-22T000443","2025-07-22T003819","2025-07-22T005351","2025-07-22T011118","2025-07-22T012618","2025-07-22T014118","2025-07-22T015618","2025-07-22T024235","2025-07-22T025735","2025-07-22T031235","2025-07-22T032735","2025-07-22T034236","2025-07-22T035736","2025-07-22T041235","2025-07-22T042735","2025-07-22T052937","2025-07-22T054436","2025-07-22T055937","2025-07-22T061436","2025-07-22T062937","2025-07-22T064701","2025-07-22T070200","2025-07-22T071700","2025-07-22T073200","2025-07-22T074700","2025-07-22T080200","2025-07-22T081817","2025-07-22T083317","2025-07-22T084817","2025-07-22T090317","2025-07-22T091817","2025-07-22T093610","2025-07-22T100748","2025-07-22T102248","2025-07-22T103748","2025-07-22T121601","2025-07-22T123101","2025-07-22T124601","2025-07-22T130101","2025-07-22T133101","2025-07-22T134601","2025-07-22T140101","2025-07-22T141601","2025-07-22T143101","2025-07-22T144601","2025-07-22T151456","2025-07-22T152956","2025-07-22T163038","2025-07-22T164539","2025-07-22T170039","2025-07-22T171539","2025-07-22T190241","2025-07-22T191741","2025-07-22T193241","2025-07-22T194741","2025-07-22T200241","2025-07-22T201741","2025-07-22T203241","2025-07-22T204901","2025-07-22T212323","2025-07-22T213823","2025-07-22T215323","2025-07-22T220823","2025-07-22T222750","2025-07-22T225750","2025-07-22T232750","2025-07-22T235750","2025-07-23T002936","2025-07-23T011516","2025-07-23T013017","2025-07-23T020114","2025-07-23T023126","2025-07-23T030207","2025-07-23T031855","2025-07-23T033356","2025-07-23T035029","2025-07-23T040530","2025-07-23T042129","2025-07-23T043630","2025-07-23T050457","2025-07-23T052330","2025-07-23T053830","2025-07-23T061034","2025-07-23T064123","2025-07-23T071151","2025-07-23T074932","2025-07-23T080431","2025-07-23T082237","2025-07-23T084409","2025-07-23T090133","2025-07-23T091633","2025-07-23T093133","2025-07-23T094633","2025-07-23T100133","2025-07-23T101633","2025-07-23T103133","2025-07-23T104633","2025-07-23T110134","2025-07-23T111633","2025-07-23T113133","2025-07-23T120133","2025-07-23T121633","2025-07-23T123133","2025-07-23T130133","2025-07-23T131633","2025-07-23T133133","2025-07-23T134633","2025-07-23T140133","2025-07-23T141632","2025-07-23T143133","2025-07-23T150440","2025-07-23T151939","2025-07-23T153439","2025-07-23T154939","2025-07-23T160439","2025-07-23T161939","2025-07-23T163439","2025-07-23T164939","2025-07-23T170439"];
+        const websiteOrder = ["derstandard","zeit","washingtonpost","diepresse","krone","spiegel","orf","lemonde","elpais"];
+        const deviceType = 'desktop';
+        
+        const slider = document.getElementById('timestamp-slider');
+        const timestampDisplay = document.getElementById('timestamp-display');
+        const newsGrid = document.getElementById('news-grid');
+        
+        let currentTimestampIndex = 0;
+        
+        function updateTimestamp(index) {
+            currentTimestampIndex = index;
+            const timestamp = timestamps[index];
+            timestampDisplay.textContent = timestamp;
+            
+            // Update all images
+            websiteOrder.forEach((site, cellIndex) => {
+                const cell = document.querySelector(`[data-site="${site}"]`);
+                const existingImg = cell.querySelector('img');
+                const loadingDiv = cell.querySelector('.loading');
+                
+                // Show loading state
+                if (existingImg) existingImg.style.display = 'none';
+                loadingDiv.style.display = 'flex';
+                
+                // Create new image
+                const img = new Image();
+                img.onload = function() {
+                    // Remove existing image
+                    if (existingImg) existingImg.remove();
+                    
+                    // Add new image
+                    img.style.display = 'block';
+                    cell.insertBefore(img, cell.querySelector('.label'));
+                    loadingDiv.style.display = 'none';
+                };
+                
+                img.onerror = function() {
+                    loadingDiv.textContent = 'Error loading';
+                    loadingDiv.style.color = '#dc3545';
+                };
+                
+                // Set image source (relative path from HTML file to screenshots)
+                img.src = `screenshots_web/${deviceType}/${timestamp}/${site}_${timestamp}.webp`;
+            });
+        }
+        
+        // Event listeners
+        slider.addEventListener('input', function() {
+            updateTimestamp(parseInt(this.value));
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft' && currentTimestampIndex > 0) {
+                currentTimestampIndex--;
+                slider.value = currentTimestampIndex;
+                updateTimestamp(currentTimestampIndex);
+            } else if (e.key === 'ArrowRight' && currentTimestampIndex < timestamps.length - 1) {
+                currentTimestampIndex++;
+                slider.value = currentTimestampIndex;
+                updateTimestamp(currentTimestampIndex);
+            }
+        });
+        
+        // Initialize with first timestamp
+        updateTimestamp(0);
+    </script>
+</body>
+</html>

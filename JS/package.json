@@ -1,0 +1,21 @@
+{
+  "name": "news-screenshots",
+  "version": "1.0.0",
+  "description": "Simple script to take screenshots of news websites",
+  "main": "news-screenshots.js",
+  "scripts": {
+    "screenshots": "node news-screenshots.js",
+    "test-site": "node test-single-site.js",
+    "loop": "node run-screenshot-loop.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.4.0"
+  },
+  "keywords": [
+    "puppeteer",
+    "screenshots",
+    "news"
+  ],
+  "author": "",
+  "license": "MIT"
+}
